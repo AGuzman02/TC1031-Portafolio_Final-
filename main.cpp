@@ -1,90 +1,104 @@
 // Erick Schiller Echavarría | A01740804
 // Alejandro Guzmán Bortoni | A01740787
 
+// ACT integral estructuras de datos lineales
+// Imprime los registros en un periodo de tiempo entre dos fechas dadas
 
-// Compilación:
-// g++ -std=c++17 *.cpp -Wall -o main 
+/**
+ *
+ * Compilacion para ejecucion:
+ *    g++ -std=c++17 -Wall -O3 -o main *.cpp
+ * Ejecucion:
+ *    ./main
+ **/
 
 // * Ejecución:
-// *  ./main < TestCases/test01.txt > ./bitacora_ordenada.txt
-// *  ./main < TestCases/test02.txt > ./bitacora_ordenada.txt
-// *  ./main < TestCases/test03.txt > ./bitacora_ordenada.txt
+// *  ./main < TestCases/test01.txt
+// *  ./main < TestCases/test02.txt
+// *  ./main < TestCases/test03.txt
+
 
 
 #include <iostream>
 #include <fstream>
+#include "DLinkedList.h"
 #include "methods.h"
 
-
-
 int main() {
-  std::string fechaInicio, fechaFinal, element;
-  int i, size = 0;
-  int unixTime, fechaInicioUnix, fechaFinalUnix, indiceInicio, indiceFinal;
   std::fstream newfile;
-  vector<int> unixTimeVector;
-  vector<std::string> bitacora;
+  std::string element;
+  DLinkedList<std::string> bitacora;
+  DLinkedList<int> unixTimeList;
+  int i, unixTime;
   Methods methods;
+  std::string fechaInicio, fechaFinal;
+  int unixFechaInicio, unixFechaFinal, indexInicio, indexFinal;
+
 
   
   // Meter datos de bitacora a un vector y obtener el tamano  
   newfile.open("bitacora.txt",std::ios::in);
   if (newfile.is_open()){ 
     while(getline(newfile, element)){ 
-      bitacora.push_back(element);
-      size++; 
+      bitacora.addLast(element);
     }
   newfile.close(); //close the file object.
   }  
 
-  // Crear el vector con los unixTime
-  for(i = 0; i<size; i++){
-    methods.getUnixTime(bitacora[i], unixTime, 1);
-    unixTimeVector.push_back(unixTime);
+  for(i = 0; i<bitacora.getNumElements(); i++){
+    methods.getUnixTime(bitacora.getData(i), unixTime, 1);
+    unixTimeList.addLast(unixTime);
   }
 
 
-  // Acomodar los dos vectores
-  methods.mergeSort(unixTimeVector, bitacora, 0, size-1);
+  bitacora.sortWUnixTime(unixTimeList); // EL METODO DE MERGE SORT TARDA, PERO SI ACOMODA LOS DATOS
 
-  
-  //Leer fecha inicial y convertirla a unixTime
+  // Guardar en archivo "bitacora_ordenada.txt" la bitacora ordenada
+  newfile.open("bitacora_ordenada.txt",std::ios::out);
+  if (newfile.is_open()){ 
+    for(i = 0; i < bitacora.getNumElements(); i++){
+    newfile << bitacora.getData(i) << "\n";
+  }
+    
+  newfile.close();
+  }
+
+//Leer fecha inicial y convertirla a unixTime
   std::getline(std::cin, fechaInicio);
-  std::cout << fechaInicio << std::endl;
   
-  methods.getUnixTime(fechaInicio, fechaInicioUnix, 2);
+  methods.getUnixTime(fechaInicio, unixFechaInicio, 2);
    
-
-  
   //Leer fecha final y convertirla unixTime
   std::getline(std::cin, fechaFinal);
-  std::cout << fechaFinal << std::endl;
 
-  methods.getUnixTime(fechaFinal, fechaFinalUnix, 2);
-
-  
+  methods.getUnixTime(fechaFinal, unixFechaFinal, 2);
 
   // Buscar el indice de unixInicio
-  indiceInicio = methods.busquedaBinaria(unixTimeVector, fechaInicioUnix);
+  indexInicio = unixTimeList.DLLLinearSearch(unixFechaInicio);
   
   // Buscar el indice de unixFinal
-  indiceFinal = methods.busquedaBinaria(unixTimeVector, fechaFinalUnix);
+  indexFinal = unixTimeList.DLLLinearSearch(unixFechaFinal);
 
-  if (indiceInicio == -1 || indiceFinal == -1){
+  if (indexInicio == -1 || indexFinal == -1){
     std::cout << "Error: Una de las fechas ingresadas no se encuentra en la bitacora" << std::endl;
   }
-  else{
+  
   // Imprimir los registros dentro del intervalo ingresado
-    std::cout << "\nResultado: " << indiceFinal - indiceInicio + 1 << " registros" << std::endl;
-  for(i = indiceInicio; i<=indiceFinal; i++){
-    std::cout << bitacora[i] << std::endl;   
+  std::cout << "\nResultado: " << indexFinal - indexInicio + 1 << " Registros" << std::endl;
+  for(i = indexInicio; i <= indexFinal; i++){
+    std::cout << bitacora.getData(i) << std::endl;
   }
-
+  // Guardar en archivo "resultado_busqueda" los resultados
+  newfile.open("resultado_busqueda.txt",std::ios::out);
+  if (newfile.is_open()){ 
+    newfile << "Resultado: " << indexFinal - indexInicio + 1 << " Registros\n";
+    for(i = indexInicio; i <= indexFinal; i++){
+    newfile << bitacora.getData(i) << "\n";
   }
-
-// Falta:
-  // Guardar los vectores ordenados en un archivo llamado bitacora_ordenada.txt
-
-  
-  
+    
+  newfile.close();
+  }  
 }
+
+ // * Compilacion para debug:
+ // *    g++ -std=c++17 -Wall -g -o main *.cpp
