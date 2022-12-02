@@ -33,22 +33,29 @@ void DataMethods::saveIPSWInt(std::string fileName, std::vector<std::string> &ve
   std::string element;
   vect.push_back(" ");
   vectInts.push_back(0);
-  
-  myFile.open(fileName, std::ios::in);
-  if (myFile.is_open()){ 
+
+  try {
+    myFile.open(fileName, std::ios::in);
+    if (myFile.is_open()){ 
+      
+      while(getline(myFile, element)){ 
+        if(element[5] == ' '){
+          continue;
+        }
+        else if(element[3] == ' '){
+          break;
+        }
+        vect.push_back(element);
+        vectInts.push_back(IPtoInt(element));
+      }
+      myFile.close(); //close the file object.
     
-    while(getline(myFile, element)){ 
-      if(element[5] == ' '){
-        continue;
-      }
-      else if(element[3] == ' '){
-        break;
-      }
-      vect.push_back(element);
-      vectInts.push_back(IPtoInt(element));
     }
-    myFile.close(); //close the file object.
-    
+    else {
+      throw(fileName);
+    }
+  }catch(std::string fName){
+    std::cout << "No se pudo acceder al archivo " << fName << std::endl;
   }
 }
 

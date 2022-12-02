@@ -2,7 +2,7 @@
 // Alejandro Guzman Bortoni, A01740787
 
 /** 
-* ACT Integral 4.3
+* ACT Integral 5.2 - Codigos Hash
 *
 * Compilacion para debug:  
 *    g++ -std=c++17 -g -o main *.cpp 
@@ -13,85 +13,61 @@
 * Compilacion para ejecucion:  
 *    g++ -std=c++17 -O3 -o main *.cpp 
 * Ejecucion:
-*    ./main < TestCases/graph01.txt
+*    ./main
 **/
 
 #include <iostream>
-#include <sstream>
 #include "Graph.h"
 #include "DataMethods.h"
-#include "MaxHeap.h"
+#include "HashTable.h"
+
 
 int main() {
-  
+  int colisiones = 0;
   DataMethods methods;
   std::vector<std::string> vectIPS;
   std::vector<unsigned int> vectIPSInt;
-  std::vector<std::pair<std::string,int>> vectGrados;
-  std::vector<int> vectDistancias;
-  std::vector<std::pair<std::string, int>> vectParesDistancias;
+  std::vector<int> vectGrados;
+  std::vector<int> vectAccesos;
   Graph g1;
-  
 
   methods.saveIPSWInt("bitacoraGrafos.txt", vectIPS, vectIPSInt);
   methods.mergeSort(vectIPSInt, vectIPS, 0, vectIPSInt.size()-1);
 
   g1.loadDirWeightedGraph("bitacoraGrafos.txt", vectIPSInt);
 
-  g1.calcGrados(vectGrados, vectIPS);
-
-  methods.savePairVectIntoFile("grados_ips.txt", vectGrados);
-
-  MaxHeap maxHeap1(vectGrados.size());
-  std::vector<std::pair<std::string,int>> vectMayorGrado;
-
-  for(int j = 0; j < vectGrados.size()-1; j++){
-    maxHeap1.push(vectGrados[j]);
+  vectAccesos.resize(vectIPS.size(), 0);
+  g1.calcGradosAccesos(vectGrados, vectAccesos);
+  
+  HashTable<unsigned int> ipHashTable(vectIPS.size());
+  
+  for(int i = 1; i < vectIPS.size(); i++){
+    std::vector<int> vectNodosAccesos = g1.getNodosAccesos(i);
+    unsigned int key = vectIPSInt[i];
+    std::string ip = vectIPS[i];
+    int grado = vectGrados[i];
+    int cantAccesos = vectAccesos[i];
+    ipHashTable.add(key, ip, grado, cantAccesos, colisiones, vectNodosAccesos);
   }
 
-  std::pair<std::string,int> max = maxHeap1.getMax();
+  std::cout << "\nTotal de colisiones: " << colisiones << std::endl;
+
   
-  for(int j = 0; j < 3; j++){
-    vectMayorGrado.push_back(maxHeap1.getMax());
+
+  std::string inputIP;
+  std::cout << "\nIngrese IP: ";
+  std::cin >> inputIP;
+
+  
+  int inputIPInt = methods.IPtoInt(inputIP);
+  int indexInputIP = methods.binarySearch(vectIPSInt, inputIPInt);
+  if (indexInputIP == -1){
+    std::cout << "Error: IP no existe en bitacora" << std::endl;
+  }
+  else{
+    ipHashTable.getIPSummary(inputIP, vectIPS, vectIPSInt);
+    
   }
 
-  methods.savePairVectIntoFile("mayores_grados_ips.txt", vectMayorGrado);
 
-  std::string bootMasterIP = vectMayorGrado[0].first;
-  int bootMasterIndex = methods.binarySearch(vectIPSInt, methods.IPtoInt(bootMasterIP));
-  
-
-  std::cout << "El boot master se encuentra en la direccion de IP: " << bootMasterIP << std::endl;
-  
-
-  g1.DijkstraAlgorithm(bootMasterIndex, vectDistancias);
-
-
-  for(int j = 1; j < vectIPS.size(); j++){
-    std::pair<std::string, int> par;
-    par.first = vectIPS[j];
-    par.second = vectDistancias[j];
-    vectParesDistancias.push_back(par);
-  }
-
-  methods.savePairVectIntoFile("distancia_bootmaste.txt", vectParesDistancias);
-
-  MaxHeap myMaxHeap2(vectIPS.size());
-
-  for(int j = 0; j < vectIPS.size(); j++){
-    myMaxHeap2.push(vectParesDistancias[j]);
-  }
-
-  std::pair<std::string, int> IPLejana = myMaxHeap2.getMax();
-
-  std::cout << "La IP que requiere mas esfuerzo para ser atacada es la " << IPLejana.first << " con distancia de " << IPLejana.second;
-
-
-  
-  
-  
-  return 0;
-} 
- 
-
-// g++ -std=c++17 -O3 -o main *.cpp
+}

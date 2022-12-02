@@ -8,9 +8,7 @@
 #include <utility>
 #include <fstream>
 #include "LinkedList.h"
-#include "QueueLinkedList.h"
 #include "DataMethods.h"
-#include "MinHeap.h"
 
 
 class Graph {
@@ -32,12 +30,9 @@ class Graph {
     ~Graph();
     void loadDirWeightedGraph(std::string fileName, std::vector<unsigned int> &vectIPSInt);
     void print();
-    void BFS(int v);
-    // To do
-    void DFS(int v);
-    bool isBipartite();
-    void calcGrados(std::vector<std::pair<std::string,int>> &vectGrados, std::vector<std::string> &vectIPS);
-    void DijkstraAlgorithm(int nodoU, std::vector<int> &distancias);
+    void calcGradosAccesos(std::vector<int> &vectGrados, std::vector<int> &vectAccesos);
+    std::vector<int> getNodosAccesos(int adjListIndex);
+
     // void dijkstraAlgorithm(struct Graph* graph, int src, std::vector<std::string> &vectIPS);
 
 

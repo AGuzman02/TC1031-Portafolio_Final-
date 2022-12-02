@@ -47,7 +47,7 @@
   }
 
    
-  void MinHeap::push(std::pair<int, int> key) {// Complejidad: O(log(n))
+  void MinHeap::push(std::pair<std::string, unsigned int> key) {// Complejidad: O(log(n))
     if (size == maxSize) {
       throw std::out_of_range("Overflow: no se puede insertar la llave");
     }
@@ -68,7 +68,7 @@
   }
 
    
-  std::pair<int, int> MinHeap::top() { // Complejidad: O(1)
+  std::pair<std::string, unsigned int> MinHeap::top() { // Complejidad: O(1)
     // Si el arbol esta vacio
     if(isEmpty()){
      std::cout << "El Heap esta vacio" << std::endl;
@@ -88,7 +88,7 @@
       int i;
       // Poner el ultimo valor como el primero
       data[0] = data[size-1];
-      data[size-1].first = 100000;
+      data[size-1].first = "";
       data[size-1].second = 100000;
       size--;
       // Acomodar el arbol
@@ -101,12 +101,12 @@
   }
 
 
-std::pair<int, int> MinHeap::getMin(){ // Complejidad: O(n)
-  std::pair<int, int> min = data[0];
+std::pair<std::string, unsigned int> MinHeap::getMin(){ // Complejidad: O(n)
+  std::pair<std::string, unsigned int> min = data[0];
   
   // Poner el ultimo valor como el primero
   data[0] = data[size-1];
-  data[size-1].first = 100000;
+  data[size-1].first = "";
   data[size-1].second = 100000;
   size--;
   // Acomodar el arbol

@@ -11,7 +11,7 @@
   class MinHeap {
     private:
       // contiene los elementos del heap
-      std::vector<std::pair<int, int>> data; 
+      std::vector<std::pair<std::string, unsigned int>> data; 
       // capacidad maxima del heap
       int maxSize;
       // tamaño actual del heap   
@@ -26,11 +26,11 @@
       bool isEmpty();
       int getCapacity();
       void printMinHeap();
-      void push(std::pair<int, int> key);
+      void push(std::pair<std::string, unsigned int> key);
       int getSize();
-      std::pair<int, int> top();
+      std::pair<std::string, unsigned int> top();
       void pop();
-      std::pair<int, int> getMin();
+      std::pair<std::string, unsigned int> getMin();
   };
 
     
