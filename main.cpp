@@ -1,104 +1,84 @@
 // Erick Schiller Echavarría | A01740804
 // Alejandro Guzmán Bortoni | A01740787
 
-// ACT integral estructuras de datos lineales
-// Imprime los registros en un periodo de tiempo entre dos fechas dadas
+// ACT integral 3.4
+// 
 
-/**
- *
- * Compilacion para ejecucion:
- *    g++ -std=c++17 -Wall -O3 -o main *.cpp
- * Ejecucion:
- *    ./main
- **/
-
-// * Ejecución:
-// *  ./main < TestCases/test01.txt
-// *  ./main < TestCases/test02.txt
-// *  ./main < TestCases/test03.txt
-
-
+// Compilacion para ejecucion:
+//    g++ -std=c++17 -Wall -O3 -o main *.cpp
 
 #include <iostream>
-#include <fstream>
-#include "DLinkedList.h"
-#include "methods.h"
+#include <vector>
 
-int main() {
-  std::fstream newfile;
-  std::string element;
-  DLinkedList<std::string> bitacora;
-  DLinkedList<int> unixTimeList;
-  int i, unixTime;
-  Methods methods;
-  std::string fechaInicio, fechaFinal;
-  int unixFechaInicio, unixFechaFinal, indexInicio, indexFinal;
+#include "DataMethods.h"
+#include "MaxHeap.h"
+#include "BST.h"
 
+
+
+int main(){
+  
+  unsigned int i;
+  DataMethods methods;
+  unsigned int ipIntResultado, veces;
+  std::string resultado, resultado2;
+  std::vector<std::string> bitacora;
+  std::vector<unsigned int> sortedVector;
+  std::vector<unsigned int> sortedVectorProcesado;
+  std::vector<std::string> vectResultados; 
+  BST<unsigned int> registrosBST;
+  
+  // Guardar bitacora en un vector
+  methods.saveFileIntoVect("bitacoraHeap.txt", bitacora);
 
   
-  // Meter datos de bitacora a un vector y obtener el tamano  
-  newfile.open("bitacora.txt",std::ios::in);
-  if (newfile.is_open()){ 
-    while(getline(newfile, element)){ 
-      bitacora.addLast(element);
-    }
-  newfile.close(); //close the file object.
-  }  
-
-  for(i = 0; i<bitacora.getNumElements(); i++){
-    methods.getUnixTime(bitacora.getData(i), unixTime, 1);
-    unixTimeList.addLast(unixTime);
-  }
-
-
-  bitacora.sortWUnixTime(unixTimeList); // EL METODO DE MERGE SORT TARDA, PERO SI ACOMODA LOS DATOS
-
-  // Guardar en archivo "bitacora_ordenada.txt" la bitacora ordenada
-  newfile.open("bitacora_ordenada.txt",std::ios::out);
-  if (newfile.is_open()){ 
-    for(i = 0; i < bitacora.getNumElements(); i++){
-    newfile << bitacora.getData(i) << "\n";
+  MaxHeap<unsigned int> ipIntHeap(bitacora.size());
+  
+  
+  // Crear un heap con las IPs convertidas a entero
+  for(i = 0; i < bitacora.size(); i++){
+    ipIntHeap.pushWBitacora(methods.IPtoInt(bitacora[i]), bitacora);
   }
     
-  newfile.close();
-  }
-
-//Leer fecha inicial y convertirla a unixTime
-  std::getline(std::cin, fechaInicio);
   
-  methods.getUnixTime(fechaInicio, unixFechaInicio, 2);
-   
-  //Leer fecha final y convertirla unixTime
-  std::getline(std::cin, fechaFinal);
+  /// heapSort()
+  ipIntHeap.heapSort(sortedVector, ipIntHeap.getSize(), bitacora);
+  methods.saveVectIntoFile("bitacora_ordenada.txt", bitacora);
 
-  methods.getUnixTime(fechaFinal, unixFechaFinal, 2);
-
-  // Buscar el indice de unixInicio
-  indexInicio = unixTimeList.DLLLinearSearch(unixFechaInicio);
+  // Meter datos a BST
+  unsigned int cont, indice;
+  std::string registro;
+  indice = 0;
   
-  // Buscar el indice de unixFinal
-  indexFinal = unixTimeList.DLLLinearSearch(unixFechaFinal);
+  while(indice < sortedVector.size()){
+    cont = methods.getNumRepetidos(indice, sortedVector);
+    registrosBST.insert(sortedVector[indice-1], bitacora[indice-1], cont);
+  }
 
-  if (indexInicio == -1 || indexFinal == -1){
-    std::cout << "Error: Una de las fechas ingresadas no se encuentra en la bitacora" << std::endl;
-  }
+  // Crear maxHeap
+    MaxHeap<int> maxHeapContador(bitacora.size()); 
   
-  // Imprimir los registros dentro del intervalo ingresado
-  std::cout << "\nResultado: " << indexFinal - indexInicio + 1 << " Registros" << std::endl;
-  for(i = indexInicio; i <= indexFinal; i++){
-    std::cout << bitacora.getData(i) << std::endl;
+  // Checar duplicados
+  maxHeapContador.procesarDuplicados(sortedVector, bitacora, sortedVectorProcesado);
+
+
+  // Obtener IPs con mayor numero de accesos accesos
+std::cout << "Las 5 IPs con mayor numero de accesos son: " << std::endl;
+  
+  for(int i = 0; i<5; i++){
+    ipIntResultado = maxHeapContador.getMax(sortedVectorProcesado);
+    resultado = methods.getIP(registrosBST.getRegistroWInt(ipIntResultado));
+    veces = registrosBST.getVecesWInt(ipIntResultado);
+    resultado2 = "La IP " + resultado + " tiene " + std::to_string(veces) + " accesos.";
+    vectResultados.push_back(resultado2);
   }
-  // Guardar en archivo "resultado_busqueda" los resultados
-  newfile.open("resultado_busqueda.txt",std::ios::out);
-  if (newfile.is_open()){ 
-    newfile << "Resultado: " << indexFinal - indexInicio + 1 << " Registros\n";
-    for(i = indexInicio; i <= indexFinal; i++){
-    newfile << bitacora.getData(i) << "\n";
-  }
-    
-  newfile.close();
-  }  
+
+  
+  methods.printVector(vectResultados);
+  
+
+
+  //Guardar resultados en archivo
+  methods.saveVectIntoFile("ips_con_mayor_acceso.txt", vectResultados);
+
 }
-
- // * Compilacion para debug:
- // *    g++ -std=c++17 -Wall -g -o main *.cpp
