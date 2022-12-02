@@ -1,84 +1,97 @@
-// Erick Schiller Echavarría | A01740804
-// Alejandro Guzmán Bortoni | A01740787
+// Erick Schiller Echavarria, A01740804
+// Alejandro Guzman Bortoni, A01740787
 
-// ACT integral 3.4
-// 
-
-// Compilacion para ejecucion:
-//    g++ -std=c++17 -Wall -O3 -o main *.cpp
+/** 
+* ACT Integral 4.3
+*
+* Compilacion para debug:  
+*    g++ -std=c++17 -g -o main *.cpp 
+* Ejecucion con valgrind:
+*    nix-env -iA nixpkgs.valgrind
+*    valgrind --leak-check=full ./main < TestCases/graph01.txt
+*
+* Compilacion para ejecucion:  
+*    g++ -std=c++17 -O3 -o main *.cpp 
+* Ejecucion:
+*    ./main < TestCases/graph01.txt
+**/
 
 #include <iostream>
-#include <vector>
-
+#include <sstream>
+#include "Graph.h"
 #include "DataMethods.h"
 #include "MaxHeap.h"
-#include "BST.h"
 
-
-
-int main(){
+int main() {
   
-  unsigned int i;
   DataMethods methods;
-  unsigned int ipIntResultado, veces;
-  std::string resultado, resultado2;
-  std::vector<std::string> bitacora;
-  std::vector<unsigned int> sortedVector;
-  std::vector<unsigned int> sortedVectorProcesado;
-  std::vector<std::string> vectResultados; 
-  BST<unsigned int> registrosBST;
+  std::vector<std::string> vectIPS;
+  std::vector<unsigned int> vectIPSInt;
+  std::vector<std::pair<std::string,int>> vectGrados;
+  std::vector<int> vectDistancias;
+  std::vector<std::pair<std::string, int>> vectParesDistancias;
+  Graph g1;
   
-  // Guardar bitacora en un vector
-  methods.saveFileIntoVect("bitacoraHeap.txt", bitacora);
 
-  
-  MaxHeap<unsigned int> ipIntHeap(bitacora.size());
-  
-  
-  // Crear un heap con las IPs convertidas a entero
-  for(i = 0; i < bitacora.size(); i++){
-    ipIntHeap.pushWBitacora(methods.IPtoInt(bitacora[i]), bitacora);
-  }
-    
-  
-  /// heapSort()
-  ipIntHeap.heapSort(sortedVector, ipIntHeap.getSize(), bitacora);
-  methods.saveVectIntoFile("bitacora_ordenada.txt", bitacora);
+  methods.saveIPSWInt("bitacoraGrafos.txt", vectIPS, vectIPSInt);
+  methods.mergeSort(vectIPSInt, vectIPS, 0, vectIPSInt.size()-1);
 
-  // Meter datos a BST
-  unsigned int cont, indice;
-  std::string registro;
-  indice = 0;
-  
-  while(indice < sortedVector.size()){
-    cont = methods.getNumRepetidos(indice, sortedVector);
-    registrosBST.insert(sortedVector[indice-1], bitacora[indice-1], cont);
+  g1.loadDirWeightedGraph("bitacoraGrafos.txt", vectIPSInt);
+
+  g1.calcGrados(vectGrados, vectIPS);
+
+  methods.savePairVectIntoFile("grados_ips.txt", vectGrados);
+
+  MaxHeap maxHeap1(vectGrados.size());
+  std::vector<std::pair<std::string,int>> vectMayorGrado;
+
+  for(int j = 0; j < vectGrados.size()-1; j++){
+    maxHeap1.push(vectGrados[j]);
   }
 
-  // Crear maxHeap
-    MaxHeap<int> maxHeapContador(bitacora.size()); 
+  std::pair<std::string,int> max = maxHeap1.getMax();
   
-  // Checar duplicados
-  maxHeapContador.procesarDuplicados(sortedVector, bitacora, sortedVectorProcesado);
-
-
-  // Obtener IPs con mayor numero de accesos accesos
-std::cout << "Las 5 IPs con mayor numero de accesos son: " << std::endl;
-  
-  for(int i = 0; i<5; i++){
-    ipIntResultado = maxHeapContador.getMax(sortedVectorProcesado);
-    resultado = methods.getIP(registrosBST.getRegistroWInt(ipIntResultado));
-    veces = registrosBST.getVecesWInt(ipIntResultado);
-    resultado2 = "La IP " + resultado + " tiene " + std::to_string(veces) + " accesos.";
-    vectResultados.push_back(resultado2);
+  for(int j = 0; j < 3; j++){
+    vectMayorGrado.push_back(maxHeap1.getMax());
   }
 
+  methods.savePairVectIntoFile("mayores_grados_ips.txt", vectMayorGrado);
+
+  std::string bootMasterIP = vectMayorGrado[0].first;
+  int bootMasterIndex = methods.binarySearch(vectIPSInt, methods.IPtoInt(bootMasterIP));
   
-  methods.printVector(vectResultados);
+
+  std::cout << "El boot master se encuentra en la direccion de IP: " << bootMasterIP << std::endl;
   
 
+  g1.DijkstraAlgorithm(bootMasterIndex, vectDistancias);
 
-  //Guardar resultados en archivo
-  methods.saveVectIntoFile("ips_con_mayor_acceso.txt", vectResultados);
 
-}
+  for(int j = 1; j < vectIPS.size(); j++){
+    std::pair<std::string, int> par;
+    par.first = vectIPS[j];
+    par.second = vectDistancias[j];
+    vectParesDistancias.push_back(par);
+  }
+
+  methods.savePairVectIntoFile("distancia_bootmaste.txt", vectParesDistancias);
+
+  MaxHeap myMaxHeap2(vectIPS.size());
+
+  for(int j = 0; j < vectIPS.size(); j++){
+    myMaxHeap2.push(vectParesDistancias[j]);
+  }
+
+  std::pair<std::string, int> IPLejana = myMaxHeap2.getMax();
+
+  std::cout << "La IP que requiere mas esfuerzo para ser atacada es la " << IPLejana.first << " con distancia de " << IPLejana.second;
+
+
+  
+  
+  
+  return 0;
+} 
+ 
+
+// g++ -std=c++17 -O3 -o main *.cpp
